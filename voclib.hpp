@@ -1,6 +1,8 @@
 #pragma once
+#define VOCLIB_IMPLEMENTATION
 #include <voclib.h>
 #include <exception>
+#include <vector>
 
 class Vocoder {
 public:
@@ -10,9 +12,21 @@ throw std::runtime_error("A parameter (bands, filters per band, or sample rate) 
 }
 }
 
-float* Process(const float* carrier_buffer, const float* modulator_buffer, unsigned int frames) {
-float* buf;
-if (!voclib_process(this->voc_instance, carrier_buffer, modulator_buffer, buf, frames)) {
+std::vector<float> Process(const float* carrier_buffer, const float* modulator_buffer, unsigned int frames) {
+// We allocate a larger size than we most probably need to ensure that we have enough space since this could verry easily go out of bounds.
+// TODO: determine if this allocates too much memory.
+std::vector<float> buf(sizeof(carrier_buffer)*sizeof(modulator_buffer));
+if (!voclib_process(this->voc_instance, carrier_buffer, modulator_buffer, buf.data(), frames)) {
+throw std::runtime_error("Process: one or more parameters are not valid.");
+} else {
+return buf;
+}
+}
+
+// Nice little compatibility version, if you so choose to use it.
+std::vector<float> Process(const std::vector<float> carrier_buffer, const std::vector<float> modulator_buffer, unsigned int frames) {
+std::vector<float> buf(sizeof(carrier_buffer)+sizeof(modulator_buffer));
+if (!voclib_process(this->voc_instance, carrier_buffer.data(), modulator_buffer.data(), buf.data(), frames)) {
 throw std::runtime_error("Process: one or more parameters are not valid.");
 } else {
 return buf;

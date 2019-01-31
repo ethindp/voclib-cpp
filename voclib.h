@@ -235,7 +235,14 @@ static void voclib_BiQuad_new ( voclib_biquad* b, int type, float dbGain, /* gai
     cs = cos ( omega );
     alpha = sn * sinh ( VOCLIB_M_LN2 / 2 * bandwidth * omega / sn );
     beta = sqrt ( A + A );
-
+// Fix warning C4701, and potential violation of EXP33-C, "Do not reference uninitialized memory," of The CERT(R) C Secure Coding Standard
+// These variables are reinitialized later, but compilers will still warn about this anyway. Best to shut them up.
+a0=0.0;
+a1=0.0;
+a2=0.0;
+b0=0.0;
+b1=0.0;
+b2=0.0;
     switch ( type )
     {
         case LPF:
